@@ -1,10 +1,8 @@
 import { SolanaProviderProps } from './solana-provider.types';
-import { toArrayString } from '@polkamon/util-essential';
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { SolanaApi } from './solana-provider.types';
 import { AnchorWallet, useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
-import { ChainId } from '@polkamon/web3-util-core';
 
 const defaultContext: SolanaApi = {
   initialAddress: undefined,
@@ -19,6 +17,13 @@ const defaultContext: SolanaApi = {
   isDisconnected: true,
   setIsConnected: () => undefined
 };
+
+export function toArrayString(bytes: Uint8Array): string {
+    return JSON.stringify([...bytes]);
+}
+
+declare const CHAIN_IDS: readonly ("mainnet-beta" | "devnet" | "testnet" | "1" | "4" | "5" | "56" | "97" | "137" | "80001")[];
+export type ChainId = (typeof CHAIN_IDS)[number];
 
 export const SolanaChainId: ChainId = (process.env.NEXT_PUBLIC_SOLANA_NETWORK as ChainId) || 'mainnet-beta';
 
@@ -101,7 +106,8 @@ export const SolanaProvider = ({ children }: SolanaProviderProps) => {
   useEffect(() => {
     const walletChangeInterval = setInterval(
       () => {
-        const solana = window?.solana;
+        // @ts-ignore
+          const solana = window?.solana;
         if (solana?.publicKey) {
           if (solana.publicKey?.toBase58() !== currentWallet?.publicKey?.toBase58()) {
             setIsDisconnected(false);
